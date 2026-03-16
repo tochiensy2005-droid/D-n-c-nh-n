@@ -63,7 +63,13 @@ class WebSearcher:
 
     def search_web(self, query: str) -> List[Dict]:
         """
-        Tìm kiếm trên web bằng SerpApi (Google Search)
+        Tìm kiếm trên web.
+
+        Phiên bản hiện tại đã được đơn giản hóa để KHÔNG
+        sử dụng SerpApi hay bất kỳ dịch vụ tìm kiếm trả phí nào.
+        Hàm này trả về danh sách rỗng, và phần gọi Gemini sẽ
+        chịu trách nhiệm trả lời trực tiếp dựa trên kiến thức
+        của mô hình thay vì dữ liệu cào từ web.
 
         Args:
             query: Câu hỏi/từ khóa tìm kiếm
@@ -71,69 +77,8 @@ class WebSearcher:
         Returns:
             Danh sách kết quả tìm kiếm với metadata
         """
-        logger.info(f"🔍 Tìm kiếm Web: '{query}'")
-
-        # Kiểm tra cache
-        cached_results = self.get_cached_result(query)
-        if cached_results:
-            return cached_results
-
-        # Kiểm tra thời gian kể từ lần tìm kiếm cuối
-        current_time = time.time()
-        time_since_last = current_time - WebSearcher.last_search_time
-        if time_since_last < WebSearcher.min_interval:
-            wait_time = WebSearcher.min_interval - time_since_last
-            logger.info(f"⏳ Đợi {int(wait_time)} giây để tránh rate limit...")
-            time.sleep(wait_time)
-
-        # Nếu không có cache, tìm kiếm mới
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                params = {
-                    "engine": "google",
-                    "q": query,
-                    "api_key": os.getenv("SERPAPI_API_KEY"),
-                    "num": self.max_results,
-                    "hl": "vi",  # Ngôn ngữ tiếng Việt
-                    "gl": "vn"   # Vị trí Việt Nam
-                }
-                response = requests.get("https://serpapi.com/search", params=params)
-                response.raise_for_status()
-                results = response.json()
-
-                # Parse kết quả
-                parsed_results = []
-                for result in results.get("organic_results", []):
-                    parsed_results.append({
-                        "title": result.get("title", ""),
-                        "href": result.get("link", ""),
-                        "body": result.get("snippet", "")
-                    })
-
-                logger.info(f"✅ Tìm thấy {len(parsed_results)} kết quả")
-
-                # Cập nhật thời gian tìm kiếm cuối
-                WebSearcher.last_search_time = time.time()
-
-                # Lưu vào cache
-                self.cache[query] = {
-                    'results': parsed_results,
-                    'timestamp': time.time()
-                }
-                self.save_cache()
-
-                return parsed_results
-
-            except Exception as e:
-                logger.warning(f"❌ Lỗi SerpApi (lần {attempt+1}/{max_retries}): {str(e)}")
-                if attempt < max_retries - 1:
-                    delay = 2 ** attempt  # Backoff đơn giản: 1, 2, 4 giây
-                    logger.info(f"⏳ Đợi {delay} giây trước khi thử lại...")
-                    time.sleep(delay)
-                else:
-                    logger.error("❌ Đã thử hết số lần, bỏ qua")
-                    return []
+        logger.info(f"🔍 (BỎ SERPAPI) Bỏ qua tìm kiếm web thực, sẽ để Gemini trả lời trực tiếp cho truy vấn: '{query}'")
+        return []
 
     def extract_content(self, url: str) -> str:
         """

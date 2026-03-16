@@ -87,31 +87,42 @@ YÊU CẦU:
         logger.info("="*60)
         
         try:
-            # 1. Tìm kiếm web
-            logger.info("🌐 Tìm kiếm trên Internet...")
+            # 1. Tìm kiếm web (đã được cấu hình bỏ SerpApi, có thể trả về rỗng)
+            logger.info("🌐 (TÙY CHỌN) Tìm kiếm trên Internet...")
             web_docs = self.web_searcher.search_and_extract(question, num_results=3)
             
-            if not web_docs:
-                logger.warning("⚠️ Không tìm thấy kết quả trên web!")
-                return {
-                    "status": "no_results",
-                    "question": question,
-                    "answer": "Xin lỗi, tôi không tìm thấy thông tin phù hợp trên Internet.",
-                    "sources": []
-                }
+            sources = []
+            context = ""
             
-            logger.info(f"✅ Tìm thấy {len(web_docs)} nguồn tham khảo:")
-            for doc in web_docs:
-                logger.info(f"   - {doc['metadata']['title'][:50]}")
+            if web_docs:
+                logger.info(f"✅ Tìm thấy {len(web_docs)} nguồn tham khảo:")
+                for doc in web_docs:
+                    logger.info(f"   - {doc['metadata']['title'][:50]}")
+                
+                # Xây dựng context từ web nếu có
+                context = self._build_context_from_web(web_docs)
+                sources = [
+                    {
+                        "title": doc['metadata'].get('title', 'Không rõ'),
+                        "url": doc['metadata'].get('source', ''),
+                        "snippet": doc['metadata'].get('snippet', '')
+                    }
+                    for doc in web_docs
+                ]
+                prompt = self._build_prompt_internet(context, question)
+            else:
+                logger.warning("⚠️ Không sử dụng được dữ liệu web, sẽ để Gemini trả lời trực tiếp từ kiến thức của mô hình.")
+                # Prompt đơn giản cho trường hợp không có web context
+                prompt = f"""Bạn là một trợ lý AI thông minh, trả lời bằng tiếng Việt.
+
+Câu hỏi của người dùng:
+{question}
+
+Hãy trả lời chi tiết, dễ hiểu, tập trung vào bối cảnh du lịch và địa điểm nếu câu hỏi liên quan đến địa danh."""
             
-            # 2. Xây dựng context
-            context = self._build_context_from_web(web_docs)
-            
-            # 3. Xây dựng prompt
-            prompt = self._build_prompt_internet(context, question)
             logger.info(f"📝 Prompt length: {len(prompt)} chars")
             
-            # 4. Gọi Gemini
+            # 2. Gọi Gemini
             logger.info("🤖 Gọi Gemini để sinh câu trả lời...")
             response = self.model.generate_content(
                 prompt,
@@ -128,15 +139,8 @@ YÊU CẦU:
                 "status": "success",
                 "question": question,
                 "answer": answer,
-                "sources": [
-                    {
-                        "title": doc['metadata'].get('title', 'Không rõ'),
-                        "url": doc['metadata'].get('source', ''),
-                        "snippet": doc['metadata'].get('snippet', '')
-                    }
-                    for doc in web_docs
-                ],
-                "num_sources": len(web_docs)
+                "sources": sources,
+                "num_sources": len(sources)
             }
         
         except Exception as e:
