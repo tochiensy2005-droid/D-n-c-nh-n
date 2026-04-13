@@ -3,10 +3,5 @@ uvicorn[standard]
 torch
 torchvision
 pillow
-python-dotenv
-google-generativeai
-sentence-transformers
-faiss-cpu
-requests
 python-multipart
 

@@ -1,7 +1,6 @@
 from pathlib import Path
 import io
 import os
-import sys
 from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
@@ -13,19 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models, transforms, datasets
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Ensure we can import RAG package
-rag_dir = BASE_DIR / "RAG"
-if str(rag_dir) not in sys.path:
-    sys.path.insert(0, str(rag_dir))
-
-try:
-    from app_internet import InternetRAGChatbot
-except Exception as e:
-    InternetRAGChatbot = None
-
 
 app = FastAPI(title="Hanoi Tourism AI Backend")
 
@@ -38,22 +25,10 @@ app.add_middleware(
 )
 
 
-class ChatRequest(BaseModel):
-    question: str
-    place_name: Optional[str] = None
-
-
-class ChatResponse(BaseModel):
-    status: str
-    answer: str
-    num_sources: int = 0
-
-
 class PredictResponse(BaseModel):
     status: str
     place_name: str
     confidence: float
-    info: Optional[ChatResponse] = None
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -83,14 +58,6 @@ transform = transforms.Compose(
         ),
     ]
 )
-
-
-chatbot: Optional[InternetRAGChatbot] = None
-if InternetRAGChatbot is not None:
-    try:
-        chatbot = InternetRAGChatbot()
-    except Exception:
-        chatbot = None
 
 
 def predict_image(image: Image.Image):
@@ -123,50 +90,10 @@ async def predict_location(image: UploadFile = File(...)):
 
     place_name, confidence = predict_image(pil_img)
 
-    info = None
-    if chatbot is not None:
-        try:
-            query = f"Du lịch {place_name} Hà Nội"
-            result = chatbot.query(query)
-            info = ChatResponse(
-                status=result.get("status", "success"),
-                answer=result.get("answer", "Không tìm thấy thông tin"),
-                num_sources=result.get("num_sources", 0),
-            )
-        except Exception:
-            info = None
-
     return PredictResponse(
         status="success",
         place_name=place_name,
         confidence=confidence,
-        info=info,
-    )
-
-
-@app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    if chatbot is None:
-        raise HTTPException(status_code=500, detail="Chatbot is not available")
-
-    question = request.question.strip()
-    if not question:
-        raise HTTPException(status_code=400, detail="Question must not be empty")
-
-    if request.place_name:
-        full_question = f"Địa điểm là {request.place_name}. {question}"
-    else:
-        full_question = question
-
-    try:
-        result = chatbot.query(full_question)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    return ChatResponse(
-        status=result.get("status", "success"),
-        answer=result.get("answer", "Không có câu trả lời"),
-        num_sources=result.get("num_sources", 0),
     )
 
 
