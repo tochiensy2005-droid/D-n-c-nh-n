@@ -1,0 +1,13 @@
+{
+  "name": "tourism-hanoi-mobile",
+  "version": "1.0.0",
+  "description": "Mobile app for Hanoi tourism recognition",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 3000",
+    "dev": "python -m http.server 3000"
+  },
+  "keywords": ["tourism", "hanoi", "mobile", "camera"],
+  "author": "Tourism AI",
+  "license": "MIT"
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2E7D32">
+    <link rel="manifest" href="manifest.json">
+    <title>Du Lịch Hà Nội AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1><i class="fas fa-camera"></i> Du Lịch Hà Nội AI</h1>
+            <p>Chụp ảnh địa điểm để nhận diện</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Camera Section -->
+            <div class="camera-section" id="cameraSection">
+                <div class="camera-container">
+                    <video id="camera" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                </div>
+
+                <div class="camera-controls">
+                    <button id="captureBtn" class="btn btn-primary">
+                        <i class="fas fa-camera"></i> Chụp ảnh
+                    </button>
+                    <button id="uploadBtn" class="btn btn-secondary">
+                        <i class="fas fa-image"></i> Tư thư viện
+                    </button>
+                    <button id="switchCameraBtn" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Đổi camera
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section" id="previewSection" style="display: none;">
+                <div class="preview-container">
+                    <img id="previewImage" alt="Ảnh đã chụp">
+                    <div class="preview-actions">
+                        <button id="retakeBtn" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Chụp lại
+                        </button>
+                        <button id="analyzeBtn" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Phân tích
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="result-card">
+                    <div class="result-header">
+                        <h3 id="placeName">Đang phân tích...</h3>
+                        <div class="confidence" id="confidence"></div>
+                    </div>
+
+                    <div class="result-content">
+                        <div class="loading" id="loadingSpinner">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Đang nhận diện địa điểm...</p>
+                        </div>
+
+                        <div class="result-details" id="resultDetails" style="display: none;">
+                            <div class="info-section">
+                                <h4><i class="fas fa-info-circle"></i> Thông tin địa điểm</h4>
+                                <p id="placeInfo">Đang tải thông tin...</p>
+                            </div>
+
+                            <div class="chat-section">
+                                <h4><i class="fas fa-comments"></i> Hỏi thêm về địa điểm này</h4>
+                                <div class="chat-input">
+                                    <input type="text" id="chatInput" placeholder="Ví dụ: Lịch sử, cách đến, ăn gì...">
+                                    <button id="chatBtn" class="btn btn-small">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat History -->
+            <div class="chat-history" id="chatHistory" style="display: none;">
+                <div class="chat-messages" id="chatMessages"></div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>&copy; 2026 Du Lịch Hà Nội AI - Trợ lý thông minh</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
